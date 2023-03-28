@@ -6,4 +6,6 @@ Add host/ip mapping to /etc/hosts and add entry to .ssh/config.
 
 Installation is currently only supported via go:
 
-> go install github.com/martinnirtl/addh
+```bash
+go install github.com/martinnirtl/addh
+```
