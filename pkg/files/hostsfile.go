@@ -138,16 +138,12 @@ func (h *Hosts) RemoveHosts(hosts []string) []*Host {
 	return removed
 }
 
-func (hosts *Hosts) Write(dryRun bool) error {
+func (hosts *Hosts) Write() error {
 	file, err := os.OpenFile(hosts.filepath, os.O_RDWR, 0644)
 	if err != nil {
 		return fmt.Errorf("Failed to open '%s': %v", hosts.filepath, err)
 	}
 	defer file.Close()
-
-	if dryRun {
-		return nil
-	}
 
 	err = file.Truncate(0)
 	if err != nil {

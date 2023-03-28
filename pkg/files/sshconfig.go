@@ -171,16 +171,12 @@ func (sshConfig *SSHConfig) RemoveHosts(hosts []string) []*HostBlock {
 	return removed
 }
 
-func (sshConfig *SSHConfig) Write(dryRun bool) error {
+func (sshConfig *SSHConfig) Write() error {
 	file, err := os.OpenFile(sshConfig.filepath, os.O_RDWR, 0644)
 	if err != nil {
 		return fmt.Errorf("Failed to open '%s': %v", sshConfig.filepath, err)
 	}
 	defer file.Close()
-
-	if dryRun {
-		return nil
-	}
 
 	err = file.Truncate(0)
 	if err != nil {

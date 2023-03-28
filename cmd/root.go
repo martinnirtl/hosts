@@ -52,8 +52,8 @@ var rootCmd = &cobra.Command{
 		}
 
 		dryRun, _ := cmd.Flags().GetBool("dry-run")
-		if len(args) > 0 {
-			if err := hosts.Write(dryRun); err != nil {
+		if len(args) > 0 && !dryRun {
+			if err := hosts.Write(); err != nil {
 				cmd.Printf("Error writing file %s: %v", hostsFilePath, err)
 
 				os.Exit(1)
@@ -70,8 +70,7 @@ var rootCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		print, _ := cmd.Flags().GetBool("print")
-		if print || len(args) == 0 {
+		if dryRun || len(args) == 0 {
 			cmd.Print(helpers.Header(fmt.Sprintf("%s:", hostsFilePath), ""))
 			cmd.Print(hosts)
 		}
@@ -101,8 +100,8 @@ var rootCmd = &cobra.Command{
 			sshConfig.AddHost(args[0:len(args)-1], args[len(args)-1], user)
 		}
 
-		if len(args) > 0 {
-			sshConfig.Write(dryRun)
+		if len(args) > 0 && !dryRun {
+			sshConfig.Write()
 		}
 
 		if listHosts {
@@ -114,7 +113,7 @@ var rootCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		if print || len(args) == 0 {
+		if dryRun || len(args) == 0 {
 			cmd.Print(helpers.Header(fmt.Sprintf("%s:", sshConfigPath), "\n--\n"))
 			cmd.Print(sshConfig)
 		}
@@ -131,9 +130,8 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().Bool("dry-run", false, "Print updated files")
+	rootCmd.Flags().Bool("dry-run", false, "Only print updated `/etc/hosts` and `~/.ssh/config` files")
 	rootCmd.Flags().BoolP("list-hosts", "l", false, "List hosts")
-	rootCmd.Flags().BoolP("print", "p", false, "Print `/etc/hosts` and `~/.ssh/config` files")
 	rootCmd.Flags().BoolP("remove", "r", false, "Remove host from files")
 	rootCmd.Flags().StringP("user", "u", "", "Set 'User' for SSH config file")
 	rootCmd.Flags().String("ssh-config", "", "Set SSH Config file (e.g. /etc/ssh/config). Default: ~/.ssh/config")
