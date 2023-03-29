@@ -1,4 +1,4 @@
-module github.com/martinnirtl/hosts-cli
+module github.com/martinnirtl/hosts
 
 go 1.20
 

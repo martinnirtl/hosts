@@ -25,8 +25,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/martinnirtl/hosts-cli/internal/helpers"
-	"github.com/martinnirtl/hosts-cli/pkg/files"
+	"github.com/martinnirtl/hosts/internal/helpers"
+	"github.com/martinnirtl/hosts/pkg/files"
 	"github.com/spf13/cobra"
 )
 
