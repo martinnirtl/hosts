@@ -25,8 +25,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/martinnirtl/addh/internal/helpers"
-	"github.com/martinnirtl/addh/pkg/files"
+	"github.com/martinnirtl/hosts-cli/internal/helpers"
+	"github.com/martinnirtl/hosts-cli/pkg/files"
 	"github.com/spf13/cobra"
 )
 
@@ -43,53 +43,45 @@ var printCmd = &cobra.Command{
 		return comps, cobra.ShellCompDirectiveNoFileComp
 	},
 	Args: cobra.ExactArgs(0),
-	Run: func(cmd *cobra.Command, args []string) {
-		hostsFilePath, _ := cmd.PersistentFlags().GetString("hosts-file")
-		if hostsFilePath == "" {
-			hostsFilePath = "/etc/hosts"
-		}
-		hosts, err := files.GetHosts(hostsFilePath)
-		if err != nil {
-			cmd.Printf("Error reading file: %v", err)
-
-			os.Exit(1)
-		}
-
-		cmd.Print(helpers.Header(fmt.Sprintf("%s:", hostsFilePath), ""))
-		cmd.Print(hosts)
-
-		sshConfigPath, _ := cmd.Flags().GetString("ssh-config")
-		if sshConfigPath == "" {
-			homeDir, err := os.UserHomeDir()
-			if err != nil {
-				cmd.Printf("Error retrieving user's home directory: %v", err)
-
-				os.Exit(1)
-			}
-			sshConfigPath = fmt.Sprintf("%s/.ssh/config", homeDir)
-		}
-		sshConfig, err := files.GetSSHConfig(sshConfigPath)
-		if err != nil {
-			cmd.Printf("Error reading file: %v", err)
-
-			os.Exit(1)
-		}
-
-		cmd.Print(helpers.Header(fmt.Sprintf("%s:", sshConfigPath), "\n--\n"))
-		cmd.Print(sshConfig)
-	},
+	Run:  Print,
 }
 
 func init() {
 	rootCmd.AddCommand(printCmd)
+}
 
-	// Here you will define your flags and configuration settings.
+func Print(cmd *cobra.Command, args []string) {
+	hostsFilePath, _ := cmd.PersistentFlags().GetString("hosts-file")
+	if hostsFilePath == "" {
+		hostsFilePath = "/etc/hosts"
+	}
+	hosts, err := files.GetHosts(hostsFilePath)
+	if err != nil {
+		cmd.Printf("Error reading file: %v", err)
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// printCmd.PersistentFlags().String("foo", "", "A help for foo")
+		os.Exit(1)
+	}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// printCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	cmd.Print(helpers.Header(fmt.Sprintf("%s:", hostsFilePath), ""))
+	cmd.Print(hosts)
+
+	sshConfigPath, _ := cmd.Flags().GetString("ssh-config")
+	if sshConfigPath == "" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			cmd.Printf("Error retrieving user's home directory: %v", err)
+
+			os.Exit(1)
+		}
+		sshConfigPath = fmt.Sprintf("%s/.ssh/config", homeDir)
+	}
+	sshConfig, err := files.GetSSHConfig(sshConfigPath)
+	if err != nil {
+		cmd.Printf("Error reading file: %v", err)
+
+		os.Exit(1)
+	}
+
+	cmd.Print(helpers.Header(fmt.Sprintf("%s:", sshConfigPath), "\n--\n"))
+	cmd.Print(sshConfig)
 }

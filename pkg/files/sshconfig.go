@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/martinnirtl/addh/internal/helpers"
+	"github.com/martinnirtl/hosts-cli/internal/helpers"
 )
 
 type SSHConfig struct {

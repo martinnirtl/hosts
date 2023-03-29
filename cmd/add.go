@@ -30,11 +30,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// rmCmd represents the rm command
-var rmCmd = &cobra.Command{
-	Use:   "rm",
-	Short: "Remove host entries from ssh-config and hosts file",
-	Long:  `Remove host entries from ssh-config and hosts file. Gonna keep those files clean!`,
+// addCmd represents the add command
+var addCmd = &cobra.Command{
+	Use:   "add [alias or IP] [host...]",
+	Short: "Add address mappings to ssh-config and hosts file",
+	Long: `Add address mappings to ssh-config and hosts file. 
+  Makes your life easier!
+    Don't forget the sudo!`,
+	// DisableFlagsInUseLine: true,
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var comps []string
 		if len(args) == 0 {
@@ -46,7 +49,7 @@ var rmCmd = &cobra.Command{
 		}
 		return comps, cobra.ShellCompDirectiveNoFileComp
 	},
-	Args: cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs),
+	// Args: cobra.MatchAll(cobra.MinimumNArgs(2), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
 		hostsFilePath, _ := cmd.PersistentFlags().GetString("hosts-file")
 		if hostsFilePath == "" {
@@ -59,9 +62,11 @@ var rmCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		hosts.RemoveHosts(args)
+		if len(args) > 1 {
+			hosts.AddHost(args[0:len(args)-1], args[len(args)-1])
+		}
 
-		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		dryRun, _ := cmd.PersistentFlags().GetBool("dry-run")
 		if len(args) > 0 && !dryRun {
 			if err := hosts.Write(); err != nil {
 				cmd.Printf("Error writing file %s: %v", hostsFilePath, err)
@@ -75,7 +80,7 @@ var rmCmd = &cobra.Command{
 			cmd.Print(hosts)
 		}
 
-		sshConfigPath, _ := cmd.Flags().GetString("ssh-config")
+		sshConfigPath, _ := cmd.PersistentFlags().GetString("ssh-config")
 		if sshConfigPath == "" {
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
@@ -92,13 +97,17 @@ var rmCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		sshConfig.RemoveHosts(args)
+		if len(args) > 1 {
+			user, _ := cmd.Flags().GetString("user")
 
-		if !dryRun {
+			sshConfig.AddHost(args[0:len(args)-1], args[len(args)-1], user)
+		}
+
+		if len(args) > 0 && !dryRun {
 			sshConfig.Write()
 		}
 
-		if dryRun {
+		if dryRun || len(args) == 0 {
 			cmd.Print(helpers.Header(fmt.Sprintf("%s:", sshConfigPath), "\n--\n"))
 			cmd.Print(sshConfig)
 		}
@@ -106,5 +115,7 @@ var rmCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(rmCmd)
+	rootCmd.AddCommand(addCmd)
+
+	addCmd.Flags().StringP("user", "u", "", "Set 'User' for SSH config file")
 }

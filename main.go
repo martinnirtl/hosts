@@ -22,7 +22,7 @@ THE SOFTWARE.
 package main
 
 import (
-	"github.com/martinnirtl/addh/cmd"
+	"github.com/martinnirtl/hosts-cli/cmd"
 )
 
 func main() {

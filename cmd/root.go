@@ -22,16 +22,13 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"fmt"
 	"os"
 
-	"github.com/martinnirtl/addh/internal/helpers"
-	"github.com/martinnirtl/addh/pkg/files"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "addh [alias or IP] [host...] ",
+	Use:   "hosts",
 	Short: "Manage address mappings to ssh-config and hosts file",
 	Long: `Manage address mappings to ssh-config and hosts file. 
   Makes your life easier!
@@ -39,78 +36,13 @@ var rootCmd = &cobra.Command{
 	// DisableFlagsInUseLine: true,
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var comps []string
-		if len(args) == 0 {
-			comps = cobra.AppendActiveHelp(comps, "Expecting address/IP")
-		} else if len(args) == 1 {
-			comps = cobra.AppendActiveHelp(comps, "Expecting one or more host names")
-		} else {
-			comps = cobra.AppendActiveHelp(comps, "Expecting host names or hit enter")
+		if len(args) >= 0 {
+			comps = cobra.AppendActiveHelp(comps, "No args expected")
 		}
 		return comps, cobra.ShellCompDirectiveNoFileComp
 	},
-	// Args: cobra.MatchAll(cobra.MinimumNArgs(2), cobra.OnlyValidArgs),
-	Run: func(cmd *cobra.Command, args []string) {
-		hostsFilePath, _ := cmd.PersistentFlags().GetString("hosts-file")
-		if hostsFilePath == "" {
-			hostsFilePath = "/etc/hosts"
-		}
-		hosts, err := files.GetHosts(hostsFilePath)
-		if err != nil {
-			cmd.Printf("Error reading file: %v", err)
-
-			os.Exit(1)
-		}
-
-		if len(args) > 1 {
-			hosts.AddHost(args[0:len(args)-1], args[len(args)-1])
-		}
-
-		dryRun, _ := cmd.PersistentFlags().GetBool("dry-run")
-		if len(args) > 0 && !dryRun {
-			if err := hosts.Write(); err != nil {
-				cmd.Printf("Error writing file %s: %v", hostsFilePath, err)
-
-				os.Exit(1)
-			}
-		}
-
-		if dryRun || len(args) == 0 {
-			cmd.Print(helpers.Header(fmt.Sprintf("%s:", hostsFilePath), ""))
-			cmd.Print(hosts)
-		}
-
-		sshConfigPath, _ := cmd.PersistentFlags().GetString("ssh-config")
-		if sshConfigPath == "" {
-			homeDir, err := os.UserHomeDir()
-			if err != nil {
-				cmd.Printf("Error retrieving user's home directory: %v", err)
-
-				os.Exit(1)
-			}
-			sshConfigPath = fmt.Sprintf("%s/.ssh/config", homeDir)
-		}
-		sshConfig, err := files.GetSSHConfig(sshConfigPath)
-		if err != nil {
-			cmd.Printf("Error reading file: %v", err)
-
-			os.Exit(1)
-		}
-
-		if len(args) > 1 {
-			user, _ := cmd.Flags().GetString("user")
-
-			sshConfig.AddHost(args[0:len(args)-1], args[len(args)-1], user)
-		}
-
-		if len(args) > 0 && !dryRun {
-			sshConfig.Write()
-		}
-
-		if dryRun || len(args) == 0 {
-			cmd.Print(helpers.Header(fmt.Sprintf("%s:", sshConfigPath), "\n--\n"))
-			cmd.Print(sshConfig)
-		}
-	},
+	Args: cobra.ExactArgs(0),
+	Run:  Print,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -124,8 +56,6 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().Bool("dry-run", false, "Only print updated `/etc/hosts` and `~/.ssh/config` files")
-	rootCmd.PersistentFlags().String("hosts-file", "", "Set host file (e.g. ~/hosts). Default: /etc/hosts (ADDH_HOSTSFILE)")
-	rootCmd.PersistentFlags().String("ssh-config", "", "Set SSH Config file (e.g. /etc/ssh/config). Default: ~/.ssh/config (ADDH_SSHCONFIG)")
-
-	rootCmd.Flags().StringP("user", "u", "", "Set 'User' for SSH config file")
+	rootCmd.PersistentFlags().String("hosts-file", "", "Set host file (e.g. ~/hosts). Default: /etc/hosts")
+	rootCmd.PersistentFlags().String("ssh-config", "", "Set SSH Config file (e.g. /etc/ssh/config). Default: ~/.ssh/config")
 }

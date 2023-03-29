@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/martinnirtl/addh/internal/helpers"
+	"github.com/martinnirtl/hosts-cli/internal/helpers"
 )
 
 var (
