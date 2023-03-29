@@ -27,6 +27,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// VersionInfo describes structure of version information objects.
+type VersionInfo struct {
+	Version string
+	Commit  string
+	Date    string
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "hosts",
 	Short: "Manage address mappings to ssh-config and hosts file",
