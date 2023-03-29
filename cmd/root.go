@@ -23,16 +23,16 @@ package cmd
 
 import (
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 )
 
-// VersionInfo describes structure of version information objects.
-type VersionInfo struct {
-	Version string
-	Commit  string
-	Date    string
-}
+var (
+	version = "development"
+	commit  = "na"
+	date    = time.Now().Local().Format(time.ANSIC)
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "hosts",
