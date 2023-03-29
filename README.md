@@ -29,8 +29,20 @@ Use "hosts [command] --help" for more information about a command.
 
 ## Install
 
-Installation is currently only supported via go:
+Installation is currently only possible via Go.
+
+### Brew
+
+The CLI is available via a Brew Tap:
 
 ```bash
-go install github.com/martinnirtl/hosts
+brew install martinnirtl/tap/hosts
 ```
+
+### Go install
+
+```bash
+go install github.com/martinnirtl/hosts-cli
+```
+
+> Please note: Installation via Go installs the CLI bin as `hosts-cli`, not `hosts`.
