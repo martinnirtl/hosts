@@ -62,7 +62,7 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().Bool("dry-run", false, "Only print updated `/etc/hosts` and `~/.ssh/config` files")
-	rootCmd.PersistentFlags().String("hosts-file", "", "Set host file (e.g. ~/hosts). Default: /etc/hosts")
-	rootCmd.PersistentFlags().String("ssh-config", "", "Set SSH Config file (e.g. /etc/ssh/config). Default: ~/.ssh/config")
+	rootCmd.PersistentFlags().Bool("dry-run", false, "Only print updated '/etc/hosts' and '~/.ssh/config' files")
+	rootCmd.PersistentFlags().String("hosts-file", "", "Set host file (e.g. '~/hosts'). Default: /etc/hosts")
+	rootCmd.PersistentFlags().String("ssh-config", "", "Set SSH Config file (e.g. '/etc/ssh/config'). Default: ~/.ssh/config")
 }
