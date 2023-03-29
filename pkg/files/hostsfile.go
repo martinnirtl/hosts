@@ -11,6 +11,18 @@ import (
 	"github.com/martinnirtl/addh/internal/helpers"
 )
 
+var (
+	requiredHostNames = []string{
+		"localhost",
+		"broadcasthost",
+	}
+	requiredHostEntries = []string{
+		"127.0.0.1 localhost",
+		"255.255.255.255 broadcasthost",
+		"::1 localhost",
+	}
+)
+
 type Hosts struct {
 	filepath    string
 	hostEntries []*Host
@@ -89,16 +101,6 @@ func (hosts *Hosts) ListHosts() [][]string {
 	return list
 }
 
-// TODO write GetHost
-func (hosts *Hosts) GetHost(hostnames ...string) error {
-	return nil
-}
-
-// TODO write FindHost
-func (hosts *Hosts) FindHost(hostnames ...string) error {
-	return nil
-}
-
 func (h *Hosts) AddHost(hosts []string, ipOrAlias string) error {
 	host := &Host{
 		address: ipOrAlias,
@@ -106,7 +108,7 @@ func (h *Hosts) AddHost(hosts []string, ipOrAlias string) error {
 		comment: "",
 	}
 
-	// TODO check if there is already such an entry
+	// TODO check if there is already such an entry by ipOrAlias and extend it
 
 	h.hostEntries = append(h.hostEntries, host)
 
@@ -117,15 +119,24 @@ func (h *Hosts) RemoveHosts(hosts []string) []*Host {
 	new := make([]*Host, 0, 10)
 	removed := make([]*Host, 0, 10)
 
+	// filter out required hostnames like localhost and broadcasthost
+	removeHosts := make([]string, 10)
+	for _, host := range hosts {
+		if !helpers.SliceContains(requiredHostNames, host) {
+			removeHosts = append(removeHosts, host)
+		} else {
+			// TODO print warning that e.g. localhost will not be removed
+		}
+	}
+
 	for _, entry := range h.hostEntries {
 		keep := true
-		for _, host := range hosts {
+		for _, host := range removeHosts {
 			if helpers.SliceContains(entry.aliases, host) {
 				removed = append(removed, entry)
 				keep = false
 				break
 			}
-
 		}
 
 		if keep {
