@@ -117,16 +117,6 @@ func (sshConfig *SSHConfig) ListHosts() [][]string {
 	return list
 }
 
-// TODO write GetHost
-func (sshConfig *SSHConfig) GetHost(hostnames ...string) error {
-	return nil
-}
-
-// TODO write FindHost
-func (sshConfig *SSHConfig) FindHost(hostnames ...string) error {
-	return nil
-}
-
 func (sshConfig *SSHConfig) AddHost(hosts []string, ipOrAlias string, user string) error {
 	configBlockProps := make([]*HostBlockProp, 0)
 	configBlockProps = append(configBlockProps, &HostBlockProp{Kind: "HostName", Value: ipOrAlias})
