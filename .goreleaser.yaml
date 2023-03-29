@@ -74,7 +74,7 @@ release:
 brews:
   - name: hosts
     tap:
-      owner: user
+      owner: martinnirtl
       name: homebrew-tap
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
