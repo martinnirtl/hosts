@@ -1,7 +1,3 @@
-before:
-  hooks:
-    - go mod tidy
-
 project_name: hosts
 builds:
   - binary: hosts
