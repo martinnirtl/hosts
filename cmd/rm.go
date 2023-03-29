@@ -30,13 +30,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "addh [alias or IP] [host...] ",
-	Short: "Manage address mappings to ssh-config and hosts file",
-	Long: `Manage address mappings to ssh-config and hosts file. 
-  Makes your life easier!
-    Don't forget the sudo!`,
-	// DisableFlagsInUseLine: true,
+// rmCmd represents the rm command
+var rmCmd = &cobra.Command{
+	Use:   "rm",
+	Short: "Remove host entries from ssh-config and hosts file",
+	Long:  `Remove host entries from ssh-config and hosts file. Gonna keep those files clean!`,
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var comps []string
 		if len(args) == 0 {
@@ -48,7 +46,7 @@ var rootCmd = &cobra.Command{
 		}
 		return comps, cobra.ShellCompDirectiveNoFileComp
 	},
-	// Args: cobra.MatchAll(cobra.MinimumNArgs(2), cobra.OnlyValidArgs),
+	Args: cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
 		hostsFilePath, _ := cmd.PersistentFlags().GetString("hosts-file")
 		if hostsFilePath == "" {
@@ -61,11 +59,9 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if len(args) > 1 {
-			hosts.AddHost(args[0:len(args)-1], args[len(args)-1])
-		}
+		hosts.RemoveHosts(args)
 
-		dryRun, _ := cmd.PersistentFlags().GetBool("dry-run")
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
 		if len(args) > 0 && !dryRun {
 			if err := hosts.Write(); err != nil {
 				cmd.Printf("Error writing file %s: %v", hostsFilePath, err)
@@ -79,7 +75,7 @@ var rootCmd = &cobra.Command{
 			cmd.Print(hosts)
 		}
 
-		sshConfigPath, _ := cmd.PersistentFlags().GetString("ssh-config")
+		sshConfigPath, _ := cmd.Flags().GetString("ssh-config")
 		if sshConfigPath == "" {
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
@@ -96,36 +92,29 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if len(args) > 1 {
-			user, _ := cmd.Flags().GetString("user")
+		sshConfig.RemoveHosts(args)
 
-			sshConfig.AddHost(args[0:len(args)-1], args[len(args)-1], user)
-		}
-
-		if len(args) > 0 && !dryRun {
+		if !dryRun {
 			sshConfig.Write()
 		}
 
-		if dryRun || len(args) == 0 {
+		if dryRun {
 			cmd.Print(helpers.Header(fmt.Sprintf("%s:", sshConfigPath), "\n--\n"))
 			cmd.Print(sshConfig)
 		}
 	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
-}
-
 func init() {
-	rootCmd.PersistentFlags().Bool("dry-run", false, "Only print updated `/etc/hosts` and `~/.ssh/config` files")
-	rootCmd.PersistentFlags().String("hosts-file", "", "Set host file (e.g. ~/hosts). Default: /etc/hosts (ADDH_HOSTSFILE)")
-	rootCmd.PersistentFlags().String("ssh-config", "", "Set SSH Config file (e.g. /etc/ssh/config). Default: ~/.ssh/config (ADDH_SSHCONFIG)")
+	rootCmd.AddCommand(rmCmd)
 
-	rootCmd.Flags().StringP("user", "u", "", "Set 'User' for SSH config file")
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// rmCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// rmCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
