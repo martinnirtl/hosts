@@ -12,11 +12,11 @@ import (
 )
 
 var (
-	requiredHostNames = []string{
+	requiredAliases = []string{
 		"localhost",
 		"broadcasthost",
 	}
-	requiredHostEntries = []string{
+	requiredEntries = []string{
 		"127.0.0.1 localhost",
 		"255.255.255.255 broadcasthost",
 		"::1 localhost",
@@ -24,8 +24,8 @@ var (
 )
 
 type Hosts struct {
-	filepath    string
-	hostEntries []*Host
+	filepath string
+	entries  []*Host
 }
 
 type Host struct {
@@ -44,16 +44,16 @@ func (host *Host) String() string {
 }
 
 func (hosts *Hosts) String() string {
-	sort.Slice(hosts.hostEntries, func(i, j int) bool {
-		if hosts.hostEntries[i].address == "127.0.0.1" || hosts.hostEntries[i].address == "255.255.255.255" || hosts.hostEntries[i].address == "::1" {
+	sort.Slice(hosts.entries, func(i, j int) bool {
+		if hosts.entries[i].address == "127.0.0.1" || hosts.entries[i].address == "255.255.255.255" || hosts.entries[i].address == "::1" {
 			return true // always print on top
 		}
 
-		return hosts.hostEntries[j].address > hosts.hostEntries[i].address
+		return hosts.entries[j].address > hosts.entries[i].address
 	})
 
-	output := make([]string, len(hosts.hostEntries))
-	for i, entry := range hosts.hostEntries {
+	output := make([]string, len(hosts.entries))
+	for i, entry := range hosts.entries {
 		output[i] = entry.String()
 	}
 
@@ -86,31 +86,31 @@ func (hosts *Hosts) Read() error {
 		}
 
 		currentHost = &Host{address: fields[0], aliases: fields[1:], comment: comment}
-		hosts.hostEntries = append(hosts.hostEntries, currentHost)
+		hosts.entries = append(hosts.entries, currentHost)
 	}
 
 	return nil
 }
 
 func (hosts *Hosts) ListHosts() [][]string {
-	list := make([][]string, len(hosts.hostEntries))
-	for _, entry := range hosts.hostEntries {
+	list := make([][]string, len(hosts.entries))
+	for _, entry := range hosts.entries {
 		list = append(list, entry.aliases)
 	}
 
 	return list
 }
 
-func (h *Hosts) AddHost(hosts []string, ipOrAlias string) error {
+func (h *Hosts) AddHost(address string, aliases []string) error {
 	host := &Host{
-		address: ipOrAlias,
-		aliases: hosts,
+		address: address,
+		aliases: aliases,
 		comment: "",
 	}
 
-	// TODO check if there is already such an entry by ipOrAlias and extend it
+	// TODO check if there is already such an entry by address or aliases extend it
 
-	h.hostEntries = append(h.hostEntries, host)
+	h.entries = append(h.entries, host)
 
 	return nil
 }
@@ -122,14 +122,14 @@ func (h *Hosts) RemoveHosts(hosts []string) []*Host {
 	// filter out required hostnames like localhost and broadcasthost
 	removeHosts := make([]string, 10)
 	for _, host := range hosts {
-		if !helpers.SliceContains(requiredHostNames, host) {
+		if !helpers.SliceContains(requiredAliases, host) {
 			removeHosts = append(removeHosts, host)
 		} else {
 			// TODO print warning that e.g. localhost will not be removed
 		}
 	}
 
-	for _, entry := range h.hostEntries {
+	for _, entry := range h.entries {
 		keep := true
 		for _, host := range removeHosts {
 			if helpers.SliceContains(entry.aliases, host) {
@@ -144,7 +144,7 @@ func (h *Hosts) RemoveHosts(hosts []string) []*Host {
 		}
 	}
 
-	h.hostEntries = new
+	h.entries = new
 
 	return removed
 }
@@ -171,8 +171,8 @@ func (hosts *Hosts) Write() error {
 
 func GetHosts(filepath string) (*Hosts, error) {
 	hosts := &Hosts{
-		filepath:    filepath,
-		hostEntries: make([]*Host, 0, 10), // TODO test with capacity 1
+		filepath: filepath,
+		entries:  make([]*Host, 0, 10), // TODO test with capacity 1
 	}
 
 	err := hosts.Read()

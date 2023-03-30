@@ -32,12 +32,11 @@ import (
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
-	Use:   "add [alias or IP] [host...]",
+	Use:   "add ADDRESS ALIASES...",
 	Short: "Add address mappings to ssh-config and hosts file",
-	Long: `Add address mappings to ssh-config and hosts file. 
+	Long: `Add address mappings to ssh-config and hosts file. Address can be an IP or a domain. 
   Makes your life easier!
     Don't forget the sudo!`,
-	// DisableFlagsInUseLine: true,
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var comps []string
 		if len(args) == 0 {
@@ -45,7 +44,7 @@ var addCmd = &cobra.Command{
 		} else if len(args) == 1 {
 			comps = cobra.AppendActiveHelp(comps, "Expecting one or more host names")
 		} else {
-			comps = cobra.AppendActiveHelp(comps, "Expecting host names or hit enter")
+			comps = cobra.AppendActiveHelp(comps, "Expecting host names or enter key")
 		}
 		return comps, cobra.ShellCompDirectiveNoFileComp
 	},
@@ -63,7 +62,7 @@ var addCmd = &cobra.Command{
 		}
 
 		if len(args) > 1 {
-			hosts.AddHost(args[0:len(args)-1], args[len(args)-1])
+			hosts.AddHost(args[0], args[1:])
 		}
 
 		dryRun, _ := cmd.PersistentFlags().GetBool("dry-run")
@@ -100,7 +99,7 @@ var addCmd = &cobra.Command{
 		if len(args) > 1 {
 			user, _ := cmd.Flags().GetString("user")
 
-			sshConfig.AddHost(args[0:len(args)-1], args[len(args)-1], user)
+			sshConfig.AddHost(args[1:], args[0], user)
 		}
 
 		if len(args) > 0 && !dryRun {

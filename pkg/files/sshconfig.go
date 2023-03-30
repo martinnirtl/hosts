@@ -117,9 +117,9 @@ func (sshConfig *SSHConfig) ListHosts() [][]string {
 	return list
 }
 
-func (sshConfig *SSHConfig) AddHost(hosts []string, ipOrAlias string, user string) error {
+func (sshConfig *SSHConfig) AddHost(hosts []string, hostname string, user string) error {
 	configBlockProps := make([]*HostBlockProp, 0)
-	configBlockProps = append(configBlockProps, &HostBlockProp{Kind: "HostName", Value: ipOrAlias})
+	configBlockProps = append(configBlockProps, &HostBlockProp{Kind: "HostName", Value: hostname})
 	if user != "" {
 		configBlockProps = append(configBlockProps, &HostBlockProp{Kind: "User", Value: user})
 	}
