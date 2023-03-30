@@ -67,8 +67,7 @@ var rmCmd = &cobra.Command{
 		}
 
 		if dryRun {
-			cmd.Print(helpers.Header(fmt.Sprintf("%s:", hostsFilePath), ""))
-			cmd.Print(hosts)
+			cmd.Print(helpers.PrintFile(hostsFilePath, hosts))
 		}
 
 		sshConfigPath, _ := cmd.Flags().GetString("ssh-config")
@@ -95,8 +94,7 @@ var rmCmd = &cobra.Command{
 		}
 
 		if dryRun {
-			cmd.Print(helpers.Header(fmt.Sprintf("%s:", sshConfigPath), "\n--\n"))
-			cmd.Print(sshConfig)
+			cmd.Print(helpers.PrintFileWithSpacer(sshConfigPath, sshConfig))
 		}
 	},
 }

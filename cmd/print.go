@@ -62,8 +62,7 @@ func Print(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	cmd.Print(helpers.Header(fmt.Sprintf("%s:", hostsFilePath), ""))
-	cmd.Print(hosts)
+	cmd.Print(helpers.PrintFile(hostsFilePath, hosts))
 
 	sshConfigPath, _ := cmd.Flags().GetString("ssh-config")
 	if sshConfigPath == "" {
@@ -82,6 +81,5 @@ func Print(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	cmd.Print(helpers.Header(fmt.Sprintf("%s:", sshConfigPath), "\n--\n"))
-	cmd.Print(sshConfig)
+	cmd.Print(helpers.PrintFileWithSpacer(hostsFilePath, sshConfig))
 }
