@@ -48,7 +48,7 @@ var addCmd = &cobra.Command{
 		}
 		return comps, cobra.ShellCompDirectiveNoFileComp
 	},
-	// Args: cobra.MatchAll(cobra.MinimumNArgs(2), cobra.OnlyValidArgs),
+	Args: cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		hostsFilePath, _ := cmd.PersistentFlags().GetString("hosts-file")
 		if hostsFilePath == "" {
@@ -61,12 +61,10 @@ var addCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if len(args) > 1 {
-			hosts.AddHost(args[0], args[1:])
-		}
+		hosts.AddHost(args[0], args[1:])
 
 		dryRun, _ := cmd.PersistentFlags().GetBool("dry-run")
-		if len(args) > 0 && !dryRun {
+		if !dryRun {
 			if err := hosts.Write(); err != nil {
 				cmd.Printf("Error writing file %s: %v", hostsFilePath, err)
 
@@ -74,7 +72,7 @@ var addCmd = &cobra.Command{
 			}
 		}
 
-		if dryRun || len(args) == 0 {
+		if dryRun {
 			cmd.Print(helpers.Header(fmt.Sprintf("%s:", hostsFilePath), ""))
 			cmd.Print(hosts)
 		}
@@ -96,17 +94,14 @@ var addCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if len(args) > 1 {
-			user, _ := cmd.Flags().GetString("user")
+		user, _ := cmd.Flags().GetString("user")
+		sshConfig.AddHost(args[1:], args[0], user)
 
-			sshConfig.AddHost(args[1:], args[0], user)
-		}
-
-		if len(args) > 0 && !dryRun {
+		if !dryRun {
 			sshConfig.Write()
 		}
 
-		if dryRun || len(args) == 0 {
+		if dryRun {
 			cmd.Print(helpers.Header(fmt.Sprintf("%s:", sshConfigPath), "\n--\n"))
 			cmd.Print(sshConfig)
 		}
