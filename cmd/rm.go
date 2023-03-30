@@ -32,21 +32,17 @@ import (
 
 // rmCmd represents the rm command
 var rmCmd = &cobra.Command{
-	Use:   "rm",
-	Short: "Remove host entries from ssh-config and hosts file",
-	Long:  `Remove host entries from ssh-config and hosts file. Gonna keep those files clean!`,
+	Use:   "rm HOST...",
+	Short: "Remove one or more host entries from ssh-config and hosts file",
+	Long:  `Remove one or more host entries from ssh-config and hosts file. Gonna keep those files clean!`,
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var comps []string
 		if len(args) == 0 {
-			comps = cobra.AppendActiveHelp(comps, "Expecting address/IP")
-		} else if len(args) == 1 {
 			comps = cobra.AppendActiveHelp(comps, "Expecting one or more host names")
-		} else {
-			comps = cobra.AppendActiveHelp(comps, "Expecting host names or hit enter")
 		}
 		return comps, cobra.ShellCompDirectiveNoFileComp
 	},
-	Args: cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs),
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		hostsFilePath, _ := cmd.PersistentFlags().GetString("hosts-file")
 		if hostsFilePath == "" {
@@ -62,7 +58,7 @@ var rmCmd = &cobra.Command{
 		hosts.RemoveHosts(args)
 
 		dryRun, _ := cmd.Flags().GetBool("dry-run")
-		if len(args) > 0 && !dryRun {
+		if !dryRun {
 			if err := hosts.Write(); err != nil {
 				cmd.Printf("Error writing file %s: %v", hostsFilePath, err)
 
@@ -70,7 +66,7 @@ var rmCmd = &cobra.Command{
 			}
 		}
 
-		if dryRun || len(args) == 0 {
+		if dryRun {
 			cmd.Print(helpers.Header(fmt.Sprintf("%s:", hostsFilePath), ""))
 			cmd.Print(hosts)
 		}
