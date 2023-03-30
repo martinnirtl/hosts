@@ -23,15 +23,8 @@ package cmd
 
 import (
 	"os"
-	"time"
 
 	"github.com/spf13/cobra"
-)
-
-var (
-	version = "development"
-	commit  = "na"
-	date    = time.Now().Local().Format(time.ANSIC)
 )
 
 var rootCmd = &cobra.Command{

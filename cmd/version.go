@@ -22,7 +22,16 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"time"
+
 	"github.com/spf13/cobra"
+)
+
+var (
+	version = ""
+	commit  = ""
+	date    = ""
+	github  = "github.com/martinnirtl/hosts-cli"
 )
 
 // versionCmd represents the version command
@@ -31,7 +40,14 @@ var versionCmd = &cobra.Command{
 	Short: "Print CLI version information",
 	Long:  `Print CLI version information.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Printf("Hosts CLI Version %s built on %s (commit: %s)\n", version, date, commit)
+		if version == "" {
+			cmd.Printf("Hosts CLI installed via 'go install %s'\n\nView on GitHub > https://%s\n", github, github)
+
+			return
+		}
+
+		date := time.Now().UTC().Format(time.ANSIC)
+		cmd.Printf("Hosts CLI Version %s built %s (commit: %s)\n\nView on GitHub > %s\n", version, date, commit, github)
 	},
 }
 
