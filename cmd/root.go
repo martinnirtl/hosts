@@ -22,6 +22,7 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -66,4 +67,19 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&hostsFilePath, "hosts-file", "", "Set host file (e.g. ~/hosts); default: /etc/hosts")
 	rootCmd.PersistentFlags().StringVar(&sshConfigFilePath, "ssh-config", "", "Set SSH Config file (e.g. /etc/ssh/config); default: ~/.ssh/config")
 	rootCmd.PersistentFlags().BoolVar(&etcHosts, "etc-hosts", false, "Additionally add entry to /etc/hosts file (requires sudo)")
+}
+
+func getFilePaths() error {
+	if hostsFilePath == "" {
+		hostsFilePath = "/etc/hosts"
+	}
+	if sshConfigFilePath == "" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return err
+		}
+		sshConfigFilePath = fmt.Sprintf("%s/.ssh/config", homeDir)
+	}
+
+	return nil
 }

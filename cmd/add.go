@@ -54,10 +54,14 @@ var addCmd = &cobra.Command{
 	},
 	Args: cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
+		err := getFilePaths()
+		if err != nil {
+			cmd.Printf("Error retrieving file paths: %v", err)
+
+			os.Exit(1)
+		}
+
 		if etcHosts {
-			if hostsFilePath == "" {
-				hostsFilePath = "/etc/hosts"
-			}
 			hosts, err := files.GetHosts(hostsFilePath)
 			if err != nil {
 				cmd.Printf("Error reading file: %v", err)
@@ -80,15 +84,6 @@ var addCmd = &cobra.Command{
 			}
 		}
 
-		if sshConfigFilePath == "" {
-			homeDir, err := os.UserHomeDir()
-			if err != nil {
-				cmd.Printf("Error retrieving user's home directory: %v", err)
-
-				os.Exit(1)
-			}
-			sshConfigFilePath = fmt.Sprintf("%s/.ssh/config", homeDir)
-		}
 		sshConfig, err := files.GetSSHConfig(sshConfigFilePath)
 		if err != nil {
 			cmd.Printf("Error reading file: %v", err)
