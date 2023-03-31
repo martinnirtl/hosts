@@ -47,37 +47,45 @@ var editCmd = &cobra.Command{
 		return comps, cobra.ShellCompDirectiveNoFileComp
 	},
 	Args: cobra.MaximumNArgs(1),
-	Run:  Edit,
-}
+	Run: func(cmd *cobra.Command, args []string) {
+		editor := os.Getenv("EDITOR")
+		if len(args) == 1 {
 
-func init() {
-	rootCmd.AddCommand(editCmd)
-}
+			if _, err := exec.LookPath(args[0]); err != nil {
+				cmd.Printf("Executable '%s' not found in $PATH. Try nano or vi!\n", args[0])
 
-func Edit(cmd *cobra.Command, args []string) {
-	editor := os.Getenv("EDITOR")
-	if len(args) == 1 {
+				os.Exit(1)
+			}
 
-		if _, err := exec.LookPath(args[0]); err != nil {
-			cmd.Printf("Executable '%s' not found in $PATH. Try nano or vi!\n", args[0])
+			editor = args[0]
+		} else if editor == "" {
+			editor = "vi"
+		}
+
+		err := getFilePaths()
+		if err != nil {
+			cmd.Printf("Error retrieving file paths: %v", err)
 
 			os.Exit(1)
 		}
 
-		editor = args[0]
-	} else if editor == "" {
-		editor = "vi"
-	}
+		if etcHosts {
+			vi := exec.Command(editor, hostsFilePath)
+			vi.Stdin = os.Stdin
+			vi.Stdout = os.Stdout
+			if err := vi.Start(); err != nil {
+				cmd.Printf("Error opening file with vi: %v", err)
 
-	err := getFilePaths()
-	if err != nil {
-		cmd.Printf("Error retrieving file paths: %v", err)
+				os.Exit(1)
+			}
+			if err := vi.Wait(); err != nil {
+				cmd.Printf("Unexpected error occurred: %v", err)
 
-		os.Exit(1)
-	}
+				os.Exit(1)
+			}
+		}
 
-	if etcHosts {
-		vi := exec.Command(editor, hostsFilePath)
+		vi := exec.Command(editor, sshConfigFilePath)
 		vi.Stdin = os.Stdin
 		vi.Stdout = os.Stdout
 		if err := vi.Start(); err != nil {
@@ -90,19 +98,9 @@ func Edit(cmd *cobra.Command, args []string) {
 
 			os.Exit(1)
 		}
-	}
+	},
+}
 
-	vi := exec.Command(editor, sshConfigFilePath)
-	vi.Stdin = os.Stdin
-	vi.Stdout = os.Stdout
-	if err := vi.Start(); err != nil {
-		cmd.Printf("Error opening file with vi: %v", err)
-
-		os.Exit(1)
-	}
-	if err := vi.Wait(); err != nil {
-		cmd.Printf("Unexpected error occurred: %v", err)
-
-		os.Exit(1)
-	}
+func init() {
+	rootCmd.AddCommand(editCmd)
 }

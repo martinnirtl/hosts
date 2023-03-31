@@ -31,27 +31,27 @@ import (
 )
 
 var (
-	rmCmdMinimumNArgs int
-	editMode          bool
-	interactiveMode   bool
+	interactiveMode bool
 )
 
-// TODO add edit mode like --edit and open file in vim using exec pkg
 // TODO add interactive mode (using survey lib) if no args provided
 // rmCmd represents the rm command
 var rmCmd = &cobra.Command{
-	Use:   "rm HOST...",
+	Use:   "rm [HOST...]",
 	Short: "Remove one or more host entries from ssh-config and hosts file",
 	Long:  `Remove one or more host entries from ssh-config and hosts file. Gonna keep those files clean!`,
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var comps []string
-		if len(args) >= 0 {
-			comps = cobra.AppendActiveHelp(comps, "Expecting one or more host names")
+		if len(args) == 0 {
+			comps = cobra.AppendActiveHelp(comps, "Hit enter for interactive mode or provide one or more host names")
 			// comps = cobra.AppendActiveHelp(comps, "Hit enter for interactive removal or specify one or more host names here")
+		}
+		if len(args) > 0 {
+			comps = cobra.AppendActiveHelp(comps, "Provide more host names or hit enter")
 		}
 		return comps, cobra.ShellCompDirectiveNoFileComp
 	},
-	Args: cobra.MinimumNArgs(rmCmdMinimumNArgs), // TODO remove when interactive mode implemented
+	Args: cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		err := getFilePaths()
 		if err != nil {
@@ -60,70 +60,61 @@ var rmCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		mode := ""
-		if editMode {
-			mode = "EDIT"
-		} else if interactiveMode {
-			mode = "INTERACTIVE"
+		if interactiveMode {
+
+			return
 		}
 
-		switch mode {
-		case "INTERACTIVE": // TODO tbimplemented
-		case "EDIT":
-			Edit(cmd, args)
-
-		default:
-			if etcHosts {
-				if hostsFilePath == "" {
-					hostsFilePath = "/etc/hosts"
-				}
-				hosts, err := files.GetHosts(hostsFilePath)
-				if err != nil {
-					cmd.Printf("Error reading file: %v", err)
-
-					os.Exit(1)
-				}
-
-				hosts.RemoveHosts(args)
-
-				if !dryRun {
-					if err := hosts.Write(); err != nil {
-						cmd.Printf("Error writing file %s: %v", hostsFilePath, err)
-
-						os.Exit(1)
-					}
-				}
-
-				if dryRun {
-					cmd.Print(helpers.PrintFileWithSpacer(hostsFilePath, hosts))
-				}
+		if etcHosts {
+			if hostsFilePath == "" {
+				hostsFilePath = "/etc/hosts"
 			}
-
-			if sshConfigFilePath == "" {
-				homeDir, err := os.UserHomeDir()
-				if err != nil {
-					cmd.Printf("Error retrieving user's home directory: %v", err)
-
-					os.Exit(1)
-				}
-				sshConfigFilePath = fmt.Sprintf("%s/.ssh/config", homeDir)
-			}
-			sshConfig, err := files.GetSSHConfig(sshConfigFilePath)
+			hosts, err := files.GetHosts(hostsFilePath)
 			if err != nil {
 				cmd.Printf("Error reading file: %v", err)
 
 				os.Exit(1)
 			}
 
-			sshConfig.RemoveHosts(args)
+			hosts.RemoveHosts(args)
 
 			if !dryRun {
-				sshConfig.Write()
+				if err := hosts.Write(); err != nil {
+					cmd.Printf("Error writing file %s: %v", hostsFilePath, err)
+
+					os.Exit(1)
+				}
 			}
 
 			if dryRun {
-				cmd.Print(helpers.PrintFile(sshConfigFilePath, sshConfig))
+				cmd.Print(helpers.PrintFileWithSpacer(hostsFilePath, hosts))
 			}
+		}
+
+		if sshConfigFilePath == "" {
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				cmd.Printf("Error retrieving user's home directory: %v", err)
+
+				os.Exit(1)
+			}
+			sshConfigFilePath = fmt.Sprintf("%s/.ssh/config", homeDir)
+		}
+		sshConfig, err := files.GetSSHConfig(sshConfigFilePath)
+		if err != nil {
+			cmd.Printf("Error reading file: %v", err)
+
+			os.Exit(1)
+		}
+
+		sshConfig.RemoveHosts(args)
+
+		if !dryRun {
+			sshConfig.Write()
+		}
+
+		if dryRun {
+			cmd.Print(helpers.PrintFile(sshConfigFilePath, sshConfig))
 		}
 	},
 }
@@ -131,12 +122,6 @@ var rmCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(rmCmd)
 
-	flags := rmCmd.Flags()
-
-	flags.BoolVarP(&editMode, "edit", "e", false, "Use editor for removal; default: $EDITOR; fallback: vi")
-
-	rmCmdMinimumNArgs = 1 // TODO test whether this works with live build
-	if editMode || interactiveMode {
-		rmCmdMinimumNArgs = 0
-	}
+	// flags := rmCmd.Flags()
+	// flags.BoolVarP(&interactiveMode, "interactive", "i", false, "Interactively select host entries to remove")
 }
