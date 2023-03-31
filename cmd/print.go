@@ -37,7 +37,7 @@ var printCmd = &cobra.Command{
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var comps []string
 		if len(args) >= 0 {
-			comps = cobra.AppendActiveHelp(comps, "No args expected")
+			comps = cobra.AppendActiveHelp(comps, "No args expected - hit it!")
 		}
 		return comps, cobra.ShellCompDirectiveNoFileComp
 	},
