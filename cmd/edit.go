@@ -30,10 +30,24 @@ import (
 
 // editCmd represents the edit command
 var editCmd = &cobra.Command{
-	Use:   "edit",
-	Short: "Edit host entries from ssh-config and hosts file",
-	Long:  `Edit host entries from ssh-config and hosts file. Remember :wq to escape vim!`,
-	Run:   Edit,
+	Use:   "edit [EDITOR]",
+	Short: "Edit host entries of ssh-config and optionally hosts file", // TODO fix descriptions
+	Long:  `Edit host entries of ssh-config and optionally hosts file. Remember :wq to escape vim!`,
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		var comps []string
+		if len(args) == 0 {
+			comps = cobra.AppendActiveHelp(comps, "Provide an editor or hit enter")
+		}
+		if len(args) == 1 {
+			comps = cobra.AppendActiveHelp(comps, "Hit it!")
+		}
+		if len(args) > 1 {
+			comps = cobra.AppendActiveHelp(comps, "Too many arguments specified!")
+		}
+		return comps, cobra.ShellCompDirectiveNoFileComp
+	},
+	Args: cobra.MaximumNArgs(1),
+	Run:  Edit,
 }
 
 func init() {
@@ -42,7 +56,16 @@ func init() {
 
 func Edit(cmd *cobra.Command, args []string) {
 	editor := os.Getenv("EDITOR")
-	if editor == "" {
+	if len(args) == 1 {
+
+		if _, err := exec.LookPath(args[0]); err != nil {
+			cmd.Printf("Executable '%s' not found in $PATH. Try nano or vi!\n", args[0])
+
+			os.Exit(1)
+		}
+
+		editor = args[0]
+	} else if editor == "" {
 		editor = "vi"
 	}
 
