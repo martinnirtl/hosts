@@ -37,21 +37,21 @@ var (
 // TODO add interactive mode (using survey lib) if no args provided
 // rmCmd represents the rm command
 var rmCmd = &cobra.Command{
-	Use:   "rm [HOST...]",
+	Use:   "rm HOST...",
 	Short: "Remove one or more host entries from ssh-config and hosts file",
 	Long:  `Remove one or more host entries from ssh-config and hosts file. Gonna keep those files clean!`,
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var comps []string
 		if len(args) == 0 {
-			comps = cobra.AppendActiveHelp(comps, "Hit enter for interactive mode or provide one or more host names")
-			// comps = cobra.AppendActiveHelp(comps, "Hit enter for interactive removal or specify one or more host names here")
+			comps = cobra.AppendActiveHelp(comps, "Provide one or more host names")
+			// comps = cobra.AppendActiveHelp(comps, "Hit enter for interactive mode or provide one or more host names")
 		}
 		if len(args) > 0 {
 			comps = cobra.AppendActiveHelp(comps, "Provide more host names or hit enter")
 		}
 		return comps, cobra.ShellCompDirectiveNoFileComp
 	},
-	Args: cobra.MinimumNArgs(0),
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		err := getFilePaths()
 		if err != nil {
