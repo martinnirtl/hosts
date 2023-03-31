@@ -31,7 +31,9 @@ import (
 )
 
 var (
-	user               string
+	user         string
+	identityFile string
+	// importIdentityFilesGlob string
 )
 
 // addCmd represents the add command
@@ -91,7 +93,7 @@ var addCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		sshConfig.AddHost(args[1:], args[0], user)
+		sshConfig.AddHost(args[1:], args[0], user, identityFile)
 
 		if !dryRun {
 			sshConfig.Write()
@@ -109,4 +111,6 @@ func init() {
 	flags := addCmd.Flags()
 
 	flags.StringVarP(&user, "user", "u", "", "Set User property in SSH config Host block")
+	flags.StringVarP(&identityFile, "identity-file", "i", "", "Use identity file; e.g. ~/.ssh/custom")
+	// flags.StringVarP(&importIdentityFilesGlob, "import-idenity-files-glob", "j", "", "Import and use identity file; moves file to ~/.ssh/")
 }

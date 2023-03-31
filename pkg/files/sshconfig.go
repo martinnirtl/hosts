@@ -117,11 +117,16 @@ func (sshConfig *SSHConfig) ListHosts() [][]string {
 	return list
 }
 
-func (sshConfig *SSHConfig) AddHost(hosts []string, hostname string, user string) error {
+func (sshConfig *SSHConfig) AddHost(hosts []string, hostname string, user string, identityFile string) error {
 	configBlockProps := make([]*HostBlockProp, 0)
 	configBlockProps = append(configBlockProps, &HostBlockProp{Kind: "HostName", Value: hostname})
 	if user != "" {
 		configBlockProps = append(configBlockProps, &HostBlockProp{Kind: "User", Value: user})
+	}
+	if identityFile != "" {
+		configBlockProps = append(configBlockProps, &HostBlockProp{Kind: "IdentityFile", Value: identityFile})
+		// check https://superuser.com/questions/859661/how-can-i-force-ssh-to-ignore-the-identityfile-listed-in-host-for-one-specif
+		configBlockProps = append(configBlockProps, &HostBlockProp{Kind: "IdentitiesOnly", Value: "yes"})
 	}
 
 	configBlock := &HostBlock{
@@ -131,6 +136,25 @@ func (sshConfig *SSHConfig) AddHost(hosts []string, hostname string, user string
 	}
 
 	// TODO check if there is already such an entry
+
+	// TODO think about feature
+	// if enforceIdenityFile {
+	// 	for _, hosts := range sshConfig.blocks {
+	// 		catchAll := false
+	// 		for _, host := range hosts.Hosts {
+	// 			if host == "*" {
+	// 				catchAll = true
+	// 			}
+	// 		}
+
+	// 		if catchAll {
+	// 			hosts.Hosts = append(hosts.Hosts, negateHosts(configBlock.Hosts)...)
+	// 			sort.Slice(hosts.Hosts, func(i, j int) bool {
+	// 				return hosts.Hosts[i] < hosts.Hosts[j]
+	// 			})
+	// 		}
+	// 	}
+	// }
 
 	sshConfig.blocks = append(sshConfig.blocks, configBlock)
 
@@ -190,4 +214,13 @@ func GetSSHConfig(filepath string) (*SSHConfig, error) {
 	err := sshConfig.Read()
 
 	return sshConfig, err
+}
+
+func negateHosts(hosts []string) []string {
+	negatedHosts := make([]string, len(hosts))
+	for i, h := range hosts {
+		negatedHosts[i] = "!" + h
+	}
+
+	return negatedHosts
 }
