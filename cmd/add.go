@@ -30,6 +30,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	user               string
+)
+
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add ADDRESS ALIASES...",
@@ -50,50 +54,48 @@ var addCmd = &cobra.Command{
 	},
 	Args: cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		hostsFilePath, _ := cmd.PersistentFlags().GetString("hosts-file")
-		if hostsFilePath == "" {
-			hostsFilePath = "/etc/hosts"
-		}
-		hosts, err := files.GetHosts(hostsFilePath)
-		if err != nil {
-			cmd.Printf("Error reading file: %v", err)
-
-			os.Exit(1)
-		}
-
-		hosts.AddHost(args[0], args[1:])
-
-		dryRun, _ := cmd.PersistentFlags().GetBool("dry-run")
-		if !dryRun {
-			if err := hosts.Write(); err != nil {
-				cmd.Printf("Error writing file %s: %v", hostsFilePath, err)
+		if etcHosts {
+			if hostsFilePath == "" {
+				hostsFilePath = "/etc/hosts"
+			}
+			hosts, err := files.GetHosts(hostsFilePath)
+			if err != nil {
+				cmd.Printf("Error reading file: %v", err)
 
 				os.Exit(1)
 			}
+
+			hosts.AddHost(args[0], args[1:])
+
+			if !dryRun {
+				if err := hosts.Write(); err != nil {
+					cmd.Printf("Error writing file %s: %v", hostsFilePath, err)
+
+					os.Exit(1)
+				}
+			}
+
+			if dryRun {
+				cmd.Print(helpers.PrintFileWithSpacer(hostsFilePath, hosts))
+			}
 		}
 
-		if dryRun {
-			cmd.Print(helpers.PrintFile(hostsFilePath, hosts))
-		}
-
-		sshConfigPath, _ := cmd.PersistentFlags().GetString("ssh-config")
-		if sshConfigPath == "" {
+		if sshConfigFilePath == "" {
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
 				cmd.Printf("Error retrieving user's home directory: %v", err)
 
 				os.Exit(1)
 			}
-			sshConfigPath = fmt.Sprintf("%s/.ssh/config", homeDir)
+			sshConfigFilePath = fmt.Sprintf("%s/.ssh/config", homeDir)
 		}
-		sshConfig, err := files.GetSSHConfig(sshConfigPath)
+		sshConfig, err := files.GetSSHConfig(sshConfigFilePath)
 		if err != nil {
 			cmd.Printf("Error reading file: %v", err)
 
 			os.Exit(1)
 		}
 
-		user, _ := cmd.Flags().GetString("user")
 		sshConfig.AddHost(args[1:], args[0], user)
 
 		if !dryRun {
@@ -101,7 +103,7 @@ var addCmd = &cobra.Command{
 		}
 
 		if dryRun {
-			cmd.Print(helpers.PrintFileWithSpacer(sshConfigPath, sshConfig))
+			cmd.Print(helpers.PrintFile(sshConfigFilePath, sshConfig))
 		}
 	},
 }
@@ -109,5 +111,7 @@ var addCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(addCmd)
 
-	addCmd.Flags().StringP("user", "u", "", "Set 'User' for SSH config file")
+	flags := addCmd.Flags()
+
+	flags.StringVarP(&user, "user", "u", "", "Set User property in SSH config Host block")
 }

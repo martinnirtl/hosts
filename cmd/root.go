@@ -27,6 +27,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	etcHosts          bool
+	dryRun            bool
+	hostsFilePath     string
+	sshConfigFilePath string
+)
+
 var rootCmd = &cobra.Command{
 	Use:   "hosts",
 	Short: "Manage address mappings to ssh-config and hosts file",
@@ -55,7 +62,8 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().Bool("dry-run", false, "Only print updated '/etc/hosts' and '~/.ssh/config' files")
-	rootCmd.PersistentFlags().String("hosts-file", "", "Set host file (e.g. '~/hosts'). Default: /etc/hosts")
-	rootCmd.PersistentFlags().String("ssh-config", "", "Set SSH Config file (e.g. '/etc/ssh/config'). Default: ~/.ssh/config")
+	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Only print updated /etc/hosts and ~/.ssh/config files")
+	rootCmd.PersistentFlags().StringVar(&hostsFilePath, "hosts-file", "", "Set host file (e.g. ~/hosts); default: /etc/hosts")
+	rootCmd.PersistentFlags().StringVar(&sshConfigFilePath, "ssh-config", "", "Set SSH Config file (e.g. /etc/ssh/config); default: ~/.ssh/config")
+	rootCmd.PersistentFlags().BoolVar(&etcHosts, "etc-hosts", false, "Additionally add entry to /etc/hosts file (requires sudo)")
 }

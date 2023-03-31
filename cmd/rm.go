@@ -44,43 +44,41 @@ var rmCmd = &cobra.Command{
 	},
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		hostsFilePath, _ := cmd.PersistentFlags().GetString("hosts-file")
-		if hostsFilePath == "" {
-			hostsFilePath = "/etc/hosts"
-		}
-		hosts, err := files.GetHosts(hostsFilePath)
-		if err != nil {
-			cmd.Printf("Error reading file: %v", err)
-
-			os.Exit(1)
-		}
-
-		hosts.RemoveHosts(args)
-
-		dryRun, _ := cmd.Flags().GetBool("dry-run")
-		if !dryRun {
-			if err := hosts.Write(); err != nil {
-				cmd.Printf("Error writing file %s: %v", hostsFilePath, err)
+		if etcHosts {
+			if hostsFilePath == "" {
+				hostsFilePath = "/etc/hosts"
+			}
+			hosts, err := files.GetHosts(hostsFilePath)
+			if err != nil {
+				cmd.Printf("Error reading file: %v", err)
 
 				os.Exit(1)
 			}
-		}
 
-		if dryRun {
-			cmd.Print(helpers.PrintFile(hostsFilePath, hosts))
-		}
+			hosts.RemoveHosts(args)
 
-		sshConfigPath, _ := cmd.Flags().GetString("ssh-config")
-		if sshConfigPath == "" {
+			if !dryRun {
+				if err := hosts.Write(); err != nil {
+					cmd.Printf("Error writing file %s: %v", hostsFilePath, err)
+
+					os.Exit(1)
+				}
+			}
+
+			if dryRun {
+				cmd.Print(helpers.PrintFileWithSpacer(hostsFilePath, hosts))
+			}
+		}
+		if sshConfigFilePath == "" {
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
 				cmd.Printf("Error retrieving user's home directory: %v", err)
 
 				os.Exit(1)
 			}
-			sshConfigPath = fmt.Sprintf("%s/.ssh/config", homeDir)
+			sshConfigFilePath = fmt.Sprintf("%s/.ssh/config", homeDir)
 		}
-		sshConfig, err := files.GetSSHConfig(sshConfigPath)
+		sshConfig, err := files.GetSSHConfig(sshConfigFilePath)
 		if err != nil {
 			cmd.Printf("Error reading file: %v", err)
 
@@ -94,7 +92,7 @@ var rmCmd = &cobra.Command{
 		}
 
 		if dryRun {
-			cmd.Print(helpers.PrintFileWithSpacer(sshConfigPath, sshConfig))
+			cmd.Print(helpers.PrintFile(sshConfigFilePath, sshConfig))
 		}
 	},
 }
