@@ -59,18 +59,41 @@ archives:
 checksum:
   name_template: 'checksums.txt'
 
+sboms:
+  - artifacts: archive
+
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 
 changelog:
-  sort: asc
+  use: github
+  abbrev: 0
+  groups: # Regex use RE2 syntax as defined here: https://github.com/google/re2/wiki/Syntax.
+    - title: 'Features'
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 100
+    - title: 'Bug fixes'
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 200
+    - title: 'Documentation'
+      regexp: '^.*?docs(\([[:word:]]+\))??!?:.+$'
+      order: 300
+    - title: 'Dependency updates'
+      regexp: '^.*?(feat|fix|chore)\(deps?.+\)!?:.+$'
+      order: 400
+    - title: 'Other work'
+      order: 999
   filters:
     exclude:
-      - '^docs:'
       - '^test:'
+      - '^.*?Bump(\([[:word:]]+\))?.+$'
 
 release:
-  mode: keep-existing
+  prerelease: auto
+  # # header: |
+  # #   Welcome to this new release!
+  # footer: |
+  #   That's it for {{ .Tag }}!
 
 brews:
   - name: hosts
