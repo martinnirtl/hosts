@@ -35,6 +35,8 @@ var (
 	// importIdentityFilesGlob string
 )
 
+// TODO add option to copy ssh keys into ~/.ssh and configure host block accordingly
+
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add ADDRESS ALIASES...",
