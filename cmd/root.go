@@ -37,8 +37,8 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "hosts",
-	Short: "Manage address mappings of SSH config and optionally for hosts file",
-	Long:  `Manage address mappings of SSH config and optionally for hosts file.`,
+	Short: "Manage address mappings of SSH config and optionally entries of hosts file",
+	Long:  `Manage address mappings of SSH config and optionally entries of hosts file.`,
 	// DisableFlagsInUseLine: true,
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var comps []string
