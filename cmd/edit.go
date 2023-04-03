@@ -31,8 +31,8 @@ import (
 // editCmd represents the edit command
 var editCmd = &cobra.Command{
 	Use:   "edit [EDITOR]",
-	Short: "Edit host entries of ssh-config and optionally hosts file", // TODO fix descriptions
-	Long:  `Edit host entries of ssh-config and optionally hosts file. Remember :wq to escape vim!`,
+	Short: "Edit host entries of SSH config and optionally hosts file",
+	Long:  `Edit host entries of SSH config and optionally hosts file with the editor of your choice. Remember :wq to escape vim!`,
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var comps []string
 		if len(args) == 0 {
